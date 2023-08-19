@@ -1,0 +1,5 @@
+---
+- import_tasks: "secret_vars/main.yml"
+- import_tasks: "system_vars/main.yml"
+- import_tasks: "setup/main.yml"
+

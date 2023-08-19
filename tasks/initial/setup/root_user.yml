@@ -1,0 +1,19 @@
+---
+- name: "INITIAL:SETUP:ROOT_USER: Changing root password"
+  become: True
+  become_method: "su"
+  become_user: "root"
+  register: "change_root_password"
+  ansible.builtin.user:
+    name: "root"
+    group: "root"
+    shell: "/bin/bash"
+    update_password: "always"
+    password: "{{ root_password | string | password_hash('sha512') }}"
+  when: not is_ok_root_password
+  no_log: True
+
+- name: "INITIAL:SETUP:ROOT_USER: Setting \"ansible_become_password\" variable"
+  when: not is_ok_root_password
+  set_fact:
+    ansible_become_password: "{{ root_password }}"

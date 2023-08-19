@@ -1,0 +1,43 @@
+---
+- name: "INITIAL:SETUP:IPTABLES: Dropping input invalid traffic"
+  become: True
+  ansible.builtin.iptables:
+    chain: "INPUT"
+    jump: "DROP"
+    ctstate: "INVALID"
+
+- name: "INITIAL:SETUP:IPTABLES: Accepting SSH port"
+  become: True
+  ansible.builtin.iptables:
+    chain: "INPUT"
+    protocol: "tcp"
+    destination_port: "{{ ansible_port }}"
+    jump: "ACCEPT"
+  no_log: True
+
+- name: "INITIAL:SETUP:IPTABLES: Dropping rest input traffic"
+  become: True
+  ansible.builtin.iptables:
+    chain: "INPUT"
+    policy: "DROP"
+
+- name: "INITIAL:SETUP:IPTABLES: Dropping all forward traffic"
+  become: True
+  ansible.builtin.iptables:
+    chain: "FORWARD"
+    policy: "DROP"
+
+- name: "INITIAL:SETUP:IPTABLES: Saving current state of the firewall in system file"
+  become: True
+  community.general.iptables_state:
+    state: "saved"
+    path: "/etc/sysconfig/iptables"
+
+- name: "INITIAL:SETUP:IPTABLES: Coping autorun iptables script"
+  become: True
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/files/iptables"
+    dest: "/etc/network/if-pre-up.d/iptables"
+    owner: "root"
+    group: "root"
+    mode: 0700

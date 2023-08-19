@@ -1,0 +1,25 @@
+---
+- name: "INITIAL:SETUP:SSH: Configuring SSH server"
+  become: True
+  register: "configure_ssh_server"
+  ansible.builtin.template:
+    src: "{{ playbook_dir }}/templates/ssh/sshd_config.tpl"
+    dest: "/etc/ssh/sshd_config"
+    owner: "root"
+    group: "root"
+    mode: 0600
+  no_log: True
+
+- name: "INITIAL:SETUP:SSH: Restarting and enabling SSH service"
+  become: True
+  when: configure_ssh_server.changed
+  ansible.builtin.service:
+    name: "ssh.service"
+    state: "restarted"
+    enabled: True
+
+- name: "INITIAL:SETUP:SSH: Setting \"ansible_port\" variable"
+  when: configure_ssh_server.changed
+  ansible.builtin.set_fact:
+    ansible_port: "{{ backup_ansible_port }}"
+  no_log: True

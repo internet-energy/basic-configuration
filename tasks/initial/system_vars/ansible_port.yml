@@ -1,0 +1,20 @@
+---
+- name: "INITIAL:SYSTEM_VARS:ANSIBLE_PORT: Checking \"ansible_port\""
+  register: "check_ansible_host"
+  delegate_to: "localhost"
+  ignore_errors: True
+  ansible.builtin.wait_for:
+    host: "{{ ansible_host }}"
+    port: "{{ ansible_port }}"
+    timeout: 3
+  no_log: True
+
+- name: "INITIAL:SYSTEM_VARS:ANSIBLE_PORT: Setting \"is_ok_ansible_port\" variable"
+  ansible.builtin.set_fact:
+    is_ok_ansible_port: "{{ false if check_ansible_host.failed else true }}"
+
+- name: "INITIAL:SYSTEM_VARS:ANSIBLE_PORT: Setting initial \"ansible_port\" variable"
+  when: check_ansible_host.failed
+  set_fact:
+    ansible_port: "{{ init_ansible_port }}"
+  no_log: True

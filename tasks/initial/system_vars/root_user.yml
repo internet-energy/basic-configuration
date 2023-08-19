@@ -1,0 +1,17 @@
+---
+- name: "INITIAL:SYSTEM_VARS:ROOT_USER: Checking \"root_password\""
+  register: "check_root_password"
+  ignore_errors: True
+  ansible.builtin.shell: "echo {{ root_password }} | su root -c :"
+  changed_when: False
+  no_log: True
+
+- name: "INITIAL:SYSTEM_VARS:ROOT_USER: Setting \"is_ok_root_password\" variable"
+  ansible.builtin.set_fact:
+    is_ok_root_password: "{{ false if check_root_password.failed else true }}"
+
+- name: "INITIAL:SYSTEM_VARS:ROOT_USER: Setting \"ansible_become_password\" variable"
+  when: check_root_password.failed
+  set_fact:
+    ansible_become_password: "{{ init_root_password }}"
+  no_log: True

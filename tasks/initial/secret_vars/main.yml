@@ -1,0 +1,39 @@
+---
+- name: "INITIAL:SECRET_VARS:MAIN: Checking necessary vault environment variables on \"bastion\" station"
+  failed_when: not lookup('env', item)
+  run_once: True
+  delegate_to: "localhost"
+  ansible.builtin.ping:
+  loop:
+    - "VAULT_CLIENT_CERT"
+    - "VAULT_CLIENT_KEY"
+  no_log: True
+
+- name: "INITIAL:SECRET_VARS:MAIN: Setting environment secrets if inventory secrets is not defined"
+  register: "environment_secrets"
+  ansible.builtin.set_fact:
+    "{{ item }}": "{{ inventory_var if inventory_var else environment_var }}"
+  loop: "{{ secrets }}"
+  vars:
+    inventory_var: "{{ lookup('ansible.builtin.vars', item, default='') }}"
+    common_environment_var: "{{ lookup('env', (env_common_prefix + item ) | upper) }}"
+    environment_var: "{{ lookup('env', (env_node_prefix + item ) | upper) or common_environment_var }}"
+  no_log: True
+
+- name: "INITIAL:SECRET_VARS:MAIN: Getting secret variables from stdin"
+  when: not inventory_var
+  ansible.builtin.pause:
+    prompt: "Enter the \"{{ item }}\" variable"
+    echo: False
+  register: prompt_secret_vars
+  vars:
+    inventory_var: "{{ lookup('ansible.builtin.vars', item, default='') }}"
+  loop: "{{ secrets }}"
+  no_log: True
+
+- name: "INITIAL:SECRET_VARS:MAIN: Setting secret variables from stdin"
+  loop: "{{ prompt_secret_vars.results }}"
+  when: "prompt_secret_vars is defined and 'skipped' not in item"
+  ansible.builtin.set_fact:
+    "{{ item.item }}": "{{ item.user_input }}"
+  no_log: True

@@ -1,0 +1,56 @@
+---
+- name: "INITIAL:SETUP:ANSIBLE_USER: Creating ansible user"
+  become: True
+  become_method: "su"
+  become_user: "root"
+  register: "create_ansible_user"
+  ansible.builtin.user:
+    name: "{{ backup_ansible_user }}"
+    groups: "sudo"
+    shell: "/bin/bash"
+    update_password: "always"
+    password: "{{ backup_ansible_password | string | password_hash('sha512') }}"
+  when: not is_ok_ansible_user
+  no_log: True
+
+- name: "INITIAL:SETUP:ANSIBLE_USER: Allowing sudo without a password"
+  become: True
+  become_method: "su"
+  become_user: "root"
+  ansible.builtin.lineinfile:
+    dest: "/etc/sudoers"
+    state: "present"
+    regexp: "{{ backup_ansible_user }} ALL=(ALL) NOPASSWD: ALL"
+    line: "{{ backup_ansible_user }} ALL=(ALL) NOPASSWD: ALL"
+    validate: "/usr/sbin/visudo -cf %s"
+
+- name: "INITIAL:SETUP:ANSIBLE_USER: Setting \"ansible_user\" and \"ansible_password\" variables"
+  when: check_ansible_user.failed
+  ansible.builtin.set_fact:
+    ansible_user: "{{ backup_ansible_user }}"
+    ansible_password: "{{ backup_ansible_password }}"
+  no_log: True
+
+- name: "INITIAL:SETUP:ANSIBLE_USER: Setting \"bastion_ssh_public_key\" variable"
+  ansible.builtin.set_fact:
+    bastion_ssh_public_key: "{{ lookup('ansible.builtin.file', ssh_key_path) }}"
+  vars:
+    ssh_key_path: "/home/{{ lookup('env', 'USER') }}/.ssh/id_{{ ssh_key_type }}.pub"
+
+- name: "INITIAL:SETUP:ANSIBLE_USER: Creating \".ssh\" directory"
+  become: True
+  ansible.builtin.file:
+    path: "/home/{{ backup_ansible_user }}/.ssh"
+    state: "directory"
+    owner: "{{ backup_ansible_user }}"
+    group: "{{ backup_ansible_user }}"
+    mode: 0700
+
+- name: "INITIAL:SETUP:ANSIBLE_USER: Copying SSH public key"
+  become: True
+  ansible.builtin.template:
+    src: "{{ playbook_dir }}/templates/ssh/authorized_keys.tpl"
+    dest: "/home/{{ backup_ansible_user }}/.ssh/authorized_keys"
+    owner: "{{ backup_ansible_user }}"
+    group: "{{ backup_ansible_user }}"
+    mode: 0644

@@ -1,0 +1,8 @@
+---
+- name: "INITIAL:SYSTEM_VARS:SYSTEM_VARS: Setting system variables"
+  set_fact:
+    backup_ansible_port: "{{ ansible_port }}"
+    backup_ansible_user: "{{ ansible_user }}"
+    backup_ansible_password: "{{ ansible_password }}"
+    ansible_become_password: "{{ root_password }}"
+  no_log: True

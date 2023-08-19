@@ -1,0 +1,21 @@
+---
+- name: "INITIAL:SYSTEM_VARS:ANSIBLE_USER: Checking \"ansible_user\""
+  register: "check_ansible_user"
+  delegate_to: "localhost"
+  ignore_errors: True
+  ansible.builtin.command: "sshpass -e ssh -p {{ ansible_port }} {{ ansible_user }}@{{ ansible_host }} :"
+  environment:
+    SSHPASS: "{{ hostvars[inventory_hostname]['ansible_password'] }}"
+  changed_when: False
+  no_log: True
+
+- name: "INITIAL:SYSTEM_VARS:ANSIBLE_USER: Setting \"is_ok_ansible_user\" variable"
+  ansible.builtin.set_fact:
+    is_ok_ansible_user: "{{ false if check_ansible_user.failed else true }}"
+
+- name: "INITIAL:SYSTEM_VARS:ANSIBLE_USER: Setting initial \"ansible_user\" and \"ansible_password\" variables"
+  when: check_ansible_user.failed
+  ansible.builtin.set_fact:
+    ansible_user: "{{ init_ansible_user }}"
+    ansible_password: "{{ init_ansible_password }}"
+  no_log: True

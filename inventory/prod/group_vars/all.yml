@@ -1,0 +1,36 @@
+---
+env: "{{ inventory_dir.split('/')[-1] }}"
+timezone: "Asia/Ho_Chi_Minh"
+ssh_key_type: "ed25519"
+domain: "{{ env }}.ie.local"
+env_common_prefix: "ANSIBLE_"
+vault_secret_path: "{{ lookup('env', env_common_prefix + 'VAULT_SECRET_PATH') }}"
+vault_token: "{{ lookup('env', env_common_prefix + 'VAULT_TOKEN') }}"
+vault_host: "{{ lookup('env', env_common_prefix + 'VAULT_HOST') }}"
+vault_port: "{{ lookup('env', env_common_prefix + 'VAULT_PORT') }}"
+vault_mount_point: "{{ lookup('env', env_common_prefix + 'VAULT_MOUNT_POINT') }}"
+vault_cacert: "{{ lookup('env', env_common_prefix + 'VAULT_CACERT') }}"
+vault_module: "community.hashi_vault.vault_kv2_get"
+vault_data:
+  url: "{{ vault_host }}:{{ vault_port }}"
+  token: "{{ vault_token }}"
+  auth_method: "token"
+  engine_mount_point: "{{ vault_mount_point }}"
+  validate_certs: True
+  ca_cert: "{{ vault_cacert }}"
+secrets: [
+  "ansible_port",
+  "ansible_user",
+  "ansible_password",
+  "root_password",
+  "init_root_password",
+  "init_ansible_port",
+  "init_ansible_user",
+  "init_ansible_password",
+  "vault_token",
+  "vault_host",
+  "vault_port",
+  "vault_mount_point",
+  "vault_secret_path",
+  "vault_cacert"
+]

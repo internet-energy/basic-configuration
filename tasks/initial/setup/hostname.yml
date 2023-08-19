@@ -1,0 +1,12 @@
+---
+- name: "INITIAL:SETUP:HOSTNAME: Configuring hostname"
+  become: True
+  ansible.builtin.template:
+    src: "{{ playbook_dir }}/templates/hostname/{{ item }}.tpl"
+    dest: "/etc/{{ item }}"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  loop:
+    - "hosts"
+    - "hostname"

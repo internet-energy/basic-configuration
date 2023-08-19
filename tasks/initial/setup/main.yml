@@ -1,0 +1,8 @@
+---
+- import_tasks: "root_user.yml"
+- import_tasks: "soft.yml"
+- import_tasks: "ansible_user.yml"
+- import_tasks: "ssh.yml"
+- import_tasks: "iptables.yml"
+- import_tasks: "timezone.yml"
+- import_tasks: "hostname.yml"

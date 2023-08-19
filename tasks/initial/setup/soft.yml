@@ -1,0 +1,18 @@
+---
+- name: "INITIAL:SETUP:SOFT: Updating and upgrading system packages"
+  become: True
+  become_method: "su"
+  ansible.builtin.apt:
+    upgrade: True
+    update_cache: True
+    cache_valid_time: 86400
+
+- name: "INITIAL:SETUP:SOFT: Installing basic packages"
+  become: True
+  become_method: "su"
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: "present"
+  loop:
+    - "sudo"
+    - "iptables"

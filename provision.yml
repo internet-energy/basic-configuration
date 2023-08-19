@@ -1,0 +1,6 @@
+- name: "Initial settings"
+  hosts: "nodes"
+  tags: "base"
+  gather_facts: False
+  tasks:
+    - import_tasks: "tasks/initial/main.yml"
